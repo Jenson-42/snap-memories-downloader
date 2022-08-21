@@ -9,6 +9,9 @@ use std::{
 mod config;
 pub use crate::config::config::Config;
 
+/// Memory
+///
+/// Struct to store information about snapchat memories as in the JSON file.
 #[derive(Deserialize, Debug)]
 struct Memory {
     date: String,
@@ -16,7 +19,13 @@ struct Memory {
     download_link: String,
 }
 
-///Run the memories downloader with a given config.
+/// Run the snapchat memories downloader with a given config.
+///
+/// # Errors
+/// Error messages are returned as a static string to show to the user.
+///
+/// # Panics
+/// Panics if the working directory is empty or invalid.
 pub fn run(config: Config) -> Result<(), &'static str> {
     let memories = match read_memories(&Path::new(&config.zip_path)) {
         Ok(m) => m,
@@ -44,7 +53,12 @@ pub fn run(config: Config) -> Result<(), &'static str> {
     Ok(())
 }
 
-///Read the memories from the zipped json into a vector of memories.
+/// Read the memories from the zipped json into a vector of memories.
+///
+/// # Errors
+/// - Will return an error if the zip cannot be found or accessed.
+/// - Will return an error if the archive doesn't contain "./json/memories_history.json".
+/// - Will return an error if the JSON file can't be deserialized.
 fn read_memories(zip_path: &Path) -> Result<Vec<Memory>, &'static str> {
     //Open .zip file.
     let zipfile = match std::fs::File::open(&zip_path) {
@@ -100,6 +114,7 @@ fn read_memories(zip_path: &Path) -> Result<Vec<Memory>, &'static str> {
     return Ok(memories);
 }
 
+/// Struct to allow threads to communicate with main with an optional error message.
 struct ThreadMessage {
     id: usize,
     message: Option<&'static str>,
@@ -148,30 +163,34 @@ fn run_threads(memories: Vec<Memory>, config: Config) -> () {
             if Path::new(&filename).exists() {
                 thread_sender
                     .send(ThreadMessage::error(i, "File already exists."))
-                    .unwrap();
+                    .expect("Thread should be able to send message.");
                 return ();
             }
             //Get the image bytes from snapchat.
             let image = match retrieve_image(&download_link) {
                 Ok(image) => image,
                 Err(e) => {
-                    thread_sender.send(ThreadMessage::error(i, e)).unwrap();
+                    thread_sender
+                        .send(ThreadMessage::error(i, e))
+                        .expect("Thread should be able to send message.");
                     return ();
                 }
             };
+            //Write the bytes to file.
             let mut file = OpenOptions::new()
                 .write(true)
                 .create(true)
                 .open(filename)
                 .expect("File should be created and accessible.");
-
             file.write_all(&image)
                 .expect("File should be accessible to write to.");
 
+            //Send a message to main on completion.
             thread_sender.send(ThreadMessage::no_error(i)).unwrap();
         })));
     }
 
+    //Create a string to store a list of errors.
     let mut thread_errors = String::new();
 
     loop {
@@ -181,12 +200,12 @@ fn run_threads(memories: Vec<Memory>, config: Config) -> () {
             break;
         }
 
-        //Wait until a thread is finished, then join it
+        //Wait until a thread is finished, then join it.
         let message = thread_reciever.recv().unwrap();
         let join_handle =
             std::mem::take(&mut thread_handles[message.id]).expect("Thread should still exist.");
         join_handle.join().unwrap();
-        //Increment progress bar.
+        //Increment the progress bar.
         progressbar.inc();
 
         //If there is an error, append it to the errors string.
@@ -251,7 +270,7 @@ async fn retrieve_image(link: &str) -> Result<Vec<u8>, &'static str> {
     .await
     {
         Ok(url) => url,
-        _ => return Err("Error recieving image bytes."),
+        _ => return Err("Error receiving image bytes."),
     };
 
     return Ok(image.to_vec());

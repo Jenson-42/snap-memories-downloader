@@ -1,5 +1,9 @@
 pub mod config {
     use std::env;
+
+    /// Config
+    ///
+    /// A struct to store configuration settings for the application.
     pub struct Config {
         pub zip_path: String,
         pub output_dir: String,

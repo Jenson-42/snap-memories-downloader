@@ -3,7 +3,7 @@ use std::{env, process};
 
 #[tokio::main]
 async fn main() -> () {
-    println!("\nSnapchat Memories Downloader V0.1");
+    println!("\nSnapchat Memories Downloader V0.1.0");
 
     let config = Config::build(env::args()).unwrap_or_else(|err| {
         println!("Problem parsing arguments: {err}");
