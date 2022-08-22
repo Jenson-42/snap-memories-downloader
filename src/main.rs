@@ -1,15 +1,14 @@
 use snapchat_memories_downloader::{run, Config};
-use std::{env, process};
+use std::process;
 
 #[tokio::main]
 async fn main() -> () {
     println!("\nSnapchat Memories Downloader V0.1.0");
 
-    let config = Config::build(env::args()).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {err}");
-        process::exit(1)
-    });
+    //Get configuration from command line arguments.
+    let config = Config::from_args();
 
+    //Run the program with the given configuration.
     if let Err(e) = run(config) {
         println!("Application error: {e}");
 
