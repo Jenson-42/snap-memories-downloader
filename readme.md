@@ -12,6 +12,8 @@ I do not believe that using it violates Snapchat's terms of service but use it a
 - Download the .zip file from Snapchat when you recieve an email prompting you to do so.
 - Run the following command:
 
-`snapchat-memories-downloader.exe <relative path to zip file> <relative path to output directory> <thread sleep (ms)>`
+`snapchat-memories-downloader.exe [OPTIONS] --zip-path <ZIP_PATH> --output-dir <OUTPUT_DIR>`
+
+- Use command `snapchat-memories-downloader.exe --help` for more information.
 
 - Your memories should be downloaded to the output directory. This takes a little while especially if you have a lot of memories saved.

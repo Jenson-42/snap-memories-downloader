@@ -13,7 +13,7 @@ pub mod config {
         #[clap(short, long, value_parser)]
         pub output_dir: String,
 
-        //How long to sleep between threads.
+        //How long to sleep between threads to avoid getting rate-limited.
         #[clap(short, long, value_parser, default_value_t = 1)]
         pub thread_sleep: i32,
 
